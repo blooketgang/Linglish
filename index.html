@@ -277,17 +277,25 @@
 
     const englishEl = document.getElementById("english");
     const linglishEl = document.getElementById("linglish");
-    const translateBtn = document.getElementById("translateBtn");
-    const swapBtn = document.getElementById("swapBtn");
-    const clearBtn = document.getElementById("clearBtn");
 
-    translateBtn.addEventListener("click", () => {
+    document.getElementById("translateBtn").addEventListener("click", () => {
       linglishEl.value = translateToLinglish(englishEl.value);
     });
 
-    swapBtn.addEventListener("click", () => {
+    document.getElementById("swapBtn").addEventListener("click", () => {
       englishEl.value = translateToEnglishish(linglishEl.value);
     });
 
-    clearBtn.addEventListener("click", () => {
+    document.getElementById("clearBtn").addEventListener("click", () => {
       englishEl.value = "";
+      linglishEl.value = "";
+      englishEl.focus();
+    });
+
+    // ⭐ REAL-TIME TRANSLATION
+    englishEl.addEventListener("input", () => {
+      linglishEl.value = translateToLinglish(englishEl.value);
+    });
+  </script>
+</body>
+</html>
