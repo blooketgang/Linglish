@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Linglish Translator</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --panel: #111827;
+      --text: #e5e7eb;
+      --muted: #9ca3af;
+      --accent: #38bdf8;
+      --accent-hover: #0ea5e9;
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: "Segoe UI", system-ui, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .container {
+      background: var(--panel);
+      border-radius: 12px;
+      padding: 28px;
+      width: 90%;
+      max-width: 900px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+    }
+
+    h1 {
+      margin: 0 0 6px;
+      font-size: 1.8rem;
+      color: var(--text);
+    }
+
+    .subtitle {
+      margin: 0 0 20px;
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+
+    label {
+      display: block;
+      font-size: 0.85rem;
+      margin-bottom: 6px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 120px;
+      resize: vertical;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid #374151;
+      background: #020617;
+      color: var(--text);
+      font-size: 0.95rem;
+      outline: none;
+      transition: border 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px var(--accent);
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    @media (min-width: 720px) {
+      .row {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .buttons {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      border: none;
+      border-radius: 999px;
+      padding: 8px 16px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      background: var(--accent);
+      color: var(--bg);
+      font-weight: 600;
+      transition: background 0.15s ease, transform 0.1s ease, box-shadow 0.15s ease;
+      box-shadow: 0 8px 18px rgba(56, 189, 248, 0.35);
+    }
+
+    button:hover {
+      background: var(--accent-hover);
+      transform: translateY(-1px);
+      box-shadow: 0 10px 22px rgba(56, 189, 248, 0.45);
+    }
+
+    .secondary {
+      background: #1f2937;
+      color: var(--text);
+      box-shadow: none;
+      border: 1px solid #374151;
+    }
+
+    .secondary:hover {
+      background: #374151;
+    }
+
+    .hint {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .footer {
+      margin-top: 10px;
+      font-size: 0.8rem;
+      color: var(--muted);
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid #374151;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Linglish Translator</h1>
+    <p class="subtitle">Type English on the left and see it turn into Linglish on the right.</p>
+
+    <div class="row">
+      <div>
+        <label for="english">English</label>
+        <textarea id="english" placeholder="Type English here..."></textarea>
+        <p class="hint">Example: What is your name</p>
+      </div>
+      <div>
+        <label for="linglish">Linglish</label>
+        <textarea id="linglish" placeholder="Linglish will appear here..." readonly></textarea>
+        <p class="hint">Example output: Tahw si ruoy eman</p>
+      </div>
+    </div>
+
+    <div class="buttons">
+      <button id="translateBtn">Translate to Linglish</button>
+      <button id="swapBtn" class="secondary">Swap (Linglish ↔ English-ish)</button>
+      <button id="clearBtn" class="secondary">Clear</button>
+    </div>
+
+    <div class="footer">
+      <span class="badge">Rules: reverse words + special Linglish tweaks</span>
+      <span>Made for Linglish by you.</span>
+    </div>
+  </div>
+
+  <script>
+    const specialToLinglish = {
+      "dog": "ogd",
+      "dogs": "ogds",
+      "is": "si",
+      "name": "eman",
+      "called": "dellac",
+      "im": "mi",
+      "i'm": "mi"
+    };
+
+    const doNotReverse = [
+      "louie", "louis", "jack", "james", "emma", "oliver",
+      "london", "england", "uk"
+    ];
+
+    function reverseString(str) {
+      return str.split("").reverse().join("");
+    }
+
+    function isWord(token) {
+      return /^[a-zA-Z']+$/.test(token);
+    }
+
+    function matchCase(original, transformed) {
+      if (original[0] === original[0].toUpperCase()) {
+        return transformed.charAt(0).toUpperCase() + transformed.slice(1);
+      }
+      return transformed;
+    }
+
+    function toLinglishWord(word) {
+      const lower = word.toLowerCase();
+
+      if (specialToLinglish[lower]) {
+        return matchCase(word, specialToLinglish[lower]);
+      }
+
+      if (doNotReverse.includes(lower)) {
+        return word;
+      }
+
+      return matchCase(word, reverseString(lower));
+    }
+
+    function translateToLinglish(text) {
+      return text
+        .split(/(\s+|[^a-zA-Z'])/)
+        .map(token => isWord(token) ? toLinglishWord(token) : token)
+        .join("");
+    }
+
+    function toEnglishishWord(word) {
+      const lower = word.toLowerCase();
+      const reversed = reverseString(lower);
+      return matchCase(word, reversed);
+    }
+
+    function translateToEnglishish(text) {
+      return text
+        .split(/(\s+|[^a-zA-Z'])/)
+        .map(token => isWord(token) ? toEnglishishWord(token) : token)
+        .join("");
+    }
+
+    const englishEl = document.getElementById("english");
+    const linglishEl = document.getElementById("linglish");
+    const translateBtn = document.getElementById("translateBtn");
+    const swapBtn = document.getElementById("swapBtn");
+    const clearBtn = document.getElementById("clearBtn");
+
+    translateBtn.addEventListener("click", () => {
+      linglishEl.value = translateToLinglish(englishEl.value);
+    });
+
+    swapBtn.addEventListener("click", () => {
+      englishEl.value = translateToEnglishish(linglishEl.value);
+    });
+
+    clearBtn.addEventListener("click", () => {
+      englishEl.value = "";
+      linglishEl.value = "";
+      englishEl.focus();
+    });
+
+    // Real-time translation
+    englishEl.addEventListener("input", () => {
+      linglishEl.value = translateToLinglish(englishEl.value);
+    });
+  </script>
+</body>
+</html>
